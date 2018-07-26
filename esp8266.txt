@@ -1,0 +1,62 @@
+#include <ESP8266WiFi.h>
+
+const char* ssid = "gariot";
+const char* password = "12345678";
+
+WiFiServer server(80);
+String data;
+void setup() {
+  Serial.begin(115200);
+  // Connect to WiFi network
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  
+  WiFi.begin(ssid, password);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+  
+  // Start the server
+  server.begin();
+  Serial.println("Server started");
+
+  // Print the IP address
+  Serial.println(WiFi.localIP());
+}
+
+void loop() {
+   WiFiClient client = server.available();
+   
+  if (client.connect("www.iotipt.technologies.com",80)) 
+  { 
+    // REPLACE WITH YOUR SERVER ADDRESS
+     
+    client.println("POST /login.php HTTP/1.1"); 
+    client.println("Host:www.iotipt.technologies.com"); // SERVER ADDRESS HERE TOO
+    client.println("Content-Type: application/x-www-form-urlencoded"); 
+    client.print("Content-Length: "); 
+    //String team = "team1";
+      //data ="pinval="+String(14)+ "&team=" + team;
+    if(Serial.available() >0)  
+    {
+      
+  data=Serial.readString();
+    }
+    
+    client.println(data.length()); 
+    client.println(); 
+    client.print(data); 
+    Serial.println(data);
+  }
+  if (client.connected()) { 
+    client.stop();  // DISCONNECT FROM THE SERVER
+  }
+
+  delay(20000); // WAIT 30 seconds BEFORE SENDING AGAIN
+}

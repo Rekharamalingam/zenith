@@ -1,0 +1,81 @@
+#include <Servo.h>
+#include <SoftwareSerial.h>
+SoftwareSerial mySerial(2, 3); // RX, TX
+
+const int pingPin = 7;
+Servo myservo;
+int eled = 13;
+int gled = 12;
+int rled = 11;
+
+String team = "dustbin1";
+
+void setup() 
+{
+ Serial.begin(9600);
+ mySerial.begin(9600);
+ 
+ pinMode(eled,OUTPUT);//error
+ pinMode(gled,OUTPUT);//green
+ pinMode(rled,OUTPUT);//red
+ pinMode(10,INPUT);
+}
+
+void loop() 
+{
+  long duration, cm;
+  int sen = digitalRead(10);
+  pinMode(pingPin, OUTPUT);
+  digitalWrite(pingPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pingPin, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(pingPin, LOW);
+  
+  pinMode(pingPin, INPUT);
+  duration = pulseIn(pingPin, HIGH);
+
+  cm = duration / 29 / 2;
+
+  if(cm == 14 && sen == LOW)
+  {
+   Serial.print("Empty:");
+   Serial.println(cm);
+   String data ="team="+team+ "&svalue=" + String(0);
+   mySerial.println(data);
+   digitalWrite(eled,HIGH);
+   digitalWrite(gled,HIGH);
+   digitalWrite(rled,LOW);
+   myservo.attach(9);
+   myservo.write(180);  //open lid
+   delay(1000);
+   myservo.detach();
+   delay(1000);
+  }
+  if(sen == HIGH && cm == 14 )
+  {
+    myservo.attach(9);
+    myservo.write(0); //close lid    
+    delay(1000); 
+    myservo.detach();
+    delay(1000); 
+  }
+  if(cm <= 3 && sen == LOW)
+  {
+   Serial.print("Full:");
+   Serial.println(cm);
+   String data ="team="+team+ "&svalue=" + String(100);
+   mySerial.println(data);
+   digitalWrite(eled,HIGH);
+   digitalWrite(gled,LOW);
+   digitalWrite(rled,HIGH);
+   myservo.attach(9);
+   myservo.write(0); //close lid     
+   delay(1000); 
+   myservo.detach();
+   delay(1000); 
+  }
+  //delay(1000);
+}
+
+
